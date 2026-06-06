@@ -1,0 +1,26 @@
+# MangaLens UI Implementation Task Tracker
+
+## Component 1: Frontend Infrastructure (React + Vite)
+- [x] Initialize Vite React project in `color_model/frontend`
+- [x] Install TailwindCSS and configure it for modern glassmorphism design
+- [x] Install Lucide-React for icons
+
+## Component 2: Frontend Implementation
+- [x] Set up routing/views (Dashboard, Translate, Settings)
+- [x] Implement `FolderBrowserModal` component
+- [x] Implement `TerminalLog` component (with SSE support)
+- [x] Implement Main translation workflow UI
+- [x] Build static files (`npm run build`) -> Output generated in `dist/`
+
+## Component 3: Backend Implementation (FastAPI)
+- [x] Update `requirements_base.txt` with FastAPI dependencies
+- [x] Create `api.py`
+- [x] Implement Folder Browser API (`/api/browse`)
+- [x] Implement Dependency Management APIs (`/api/deps/...`)
+- [x] Implement Translation Start and Progress (SSE) APIs
+- [x] Serve static frontend files from `dist/`
+
+## Component 4: Integration & Testing
+- [x] Test frontend-backend API communication (Verified routing logic)
+- [x] Verify SSE logs stream correctly
+- [x] Verify design matches premium "App" requirements (Glassmorphism + Tailwind)

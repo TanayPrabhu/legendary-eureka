@@ -1,0 +1,12 @@
+# Dataset configuration for YOLO training
+# Paths are relative to this file's parent directory
+
+path: ../..  # Base path (manga_translator directory, relative to this yaml)
+train: model/color_model/train/images
+val: model/color_model/val/images
+
+# Number of classes
+nc: 3
+
+# Class names
+names: ["speech bubble", "sfx", "thought bubble"]

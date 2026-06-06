@@ -1,0 +1,39 @@
+# ==========================================
+# 📦 BASE REQUIREMENTS (Router + Japanese Pipeline)
+# ==========================================
+# Install these first: pip install -r requirements_base.txt
+# This covers language detection and the primary Japanese translation pipeline.
+
+# YOLO Object Detection (speech bubble / SFX detection)
+ultralytics
+
+# Japanese OCR (specialized manga text recognition)
+manga-ocr
+
+# AI Inpainting (erases original text from bubbles)
+simple-lama-inpainting
+
+# Japanese Translation Engine (Sugoi v4 - offline, GPU-accelerated)
+ctranslate2
+sentencepiece
+huggingface_hub
+
+# Language Detection (PaddleOCR powers the auto-language router)
+paddleocr
+
+# Core Computer Vision & Image Processing
+opencv-python
+Pillow
+numpy
+
+# PyTorch (GPU inference for YOLO, MangaOCR, LaMa)
+torch
+torchvision
+
+# HTTP Client (Ollama health checks for Chinese/Korean pipelines)
+requests
+
+# Backend API & Frontend Serving
+fastapi
+uvicorn[standard]
+sse-starlette

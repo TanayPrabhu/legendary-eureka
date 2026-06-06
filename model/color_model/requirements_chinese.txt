@@ -1,0 +1,8 @@
+# ==========================================
+# 📦 CHINESE PIPELINE — Additional Dependencies
+# ==========================================
+# Installed automatically when the Chinese pipeline is first triggered.
+# Or install manually: pip install -r requirements_chinese.txt
+
+# Pinyin romanization (failsafe for untranslated Chinese characters)
+pypinyin

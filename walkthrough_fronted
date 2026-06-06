@@ -1,0 +1,50 @@
+# Walkthrough: MangaLens Desktop UI
+
+I have completely rebuilt the interface for the Manga Translator to feel like a premium, native desktop application. It uses a modern architecture: a React frontend built with Vite and TailwindCSS, served locally by a FastAPI backend.
+
+## Architecture
+
+1. **Frontend (`frontend/`)**: 
+   - A Single Page Application (SPA) built with React and TailwindCSS v3.
+   - It has been compiled into static files (`dist/`) so that you never have to run Node.js or `npm` manually when launching the app.
+   - Design features **Glassmorphism**, smooth entrance animations, dark futuristic color palettes, and Lucide React icons.
+2. **Backend (`api.py`)**: 
+   - A high-performance FastAPI server.
+   - It mounts the React static files, meaning a single python command runs both the frontend and backend.
+   - It uses a background thread to execute the heavy translation models so the UI never freezes.
+   - Uses Server-Sent Events (SSE) to stream `print()` statements from the pipeline directly to the UI in real-time.
+
+---
+
+## Key Features Built
+
+### 1. The Dashboard
+Displays the status of all three translation pipelines. It checks if the required dependencies (`pypinyin`, `korean-romanizer`) are installed and shows if the Ollama Engine is awake or sleeping.
+
+### 2. Translate Workflow
+A complete UI replacement for the terminal prompts:
+- **Server-Side Folder Browser**: Since web browsers can't open native folder-selection dialogs automatically, I built a custom **Folder Browser Modal**. It queries the Python backend to let you navigate your local C: drive and select input/output folders directly within the app.
+- **Auto Model Selection**: It scans `color_model/` for any `.pt` YOLO models and puts them in a dropdown.
+- **Memory Management**: A toggle switch lets you clear the translation glossary (for Chinese/Korean pipelines).
+- **Real-Time Terminal**: A built-in terminal component that auto-scrolls and displays the pipeline's progress output in real-time.
+
+### 3. Settings & Dependencies
+You can click over to the Settings tab to manage missing dependencies. If `pypinyin` or `korean-romanizer` are missing, there's a 1-click install button that runs `pip install` in the background and updates the UI when finished.
+
+---
+
+## How to Run It
+
+From now on, you no longer need to run `python language_router.py`. 
+
+To launch the app:
+1. Open a terminal in the `model/color_model/` folder.
+2. Run the command:
+   ```bash
+   python api.py
+   ```
+3. It will start the server and print: `🚀 Starting MangaLens API Server on http://localhost:8000`
+4. Open your web browser and go to `http://localhost:8000` to see the new UI.
+
+> [!TIP]
+> The heavy lifting (AI models) runs in the background. If you close the terminal running `api.py`, the app will shut down.

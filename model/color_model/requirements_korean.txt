@@ -1,0 +1,8 @@
+# ==========================================
+# 📦 KOREAN PIPELINE — Additional Dependencies
+# ==========================================
+# Installed automatically when the Korean pipeline is first triggered.
+# Or install manually: pip install -r requirements_korean.txt
+
+# Korean romanization (failsafe for untranslated Hangul characters)
+korean-romanizer
