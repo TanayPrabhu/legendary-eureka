@@ -1,0 +1,42 @@
+# ==========================================
+# 📦 MANGA TRANSLATOR - BASE REQUIREMENTS
+# ==========================================
+# Install these first: pip install -r requirements.txt
+# This covers language detection, the primary Japanese translation pipeline, 
+# and the FastAPI backend that serves the frontend UI.
+
+# YOLO Object Detection (speech bubble / SFX detection)
+ultralytics
+
+# Japanese OCR (specialized manga text recognition)
+manga-ocr
+
+# AI Inpainting (erases original text from bubbles)
+simple-lama-inpainting
+
+# Japanese Translation Engine (Sugoi v4 - offline, GPU-accelerated)
+ctranslate2
+sentencepiece
+huggingface_hub
+
+# Language Detection (PaddleOCR powers the auto-language router)
+paddleocr
+
+# Core Computer Vision & Image Processing
+opencv-python
+Pillow
+numpy
+
+# PyTorch (GPU inference for YOLO, MangaOCR, LaMa)
+--extra-index-url https://download.pytorch.org/whl/cu118
+torch
+torchvision
+
+# HTTP Client (Ollama health checks for Chinese/Korean pipelines)
+requests
+
+# Backend API & Frontend Serving Dependencies
+fastapi
+uvicorn[standard]
+sse-starlette
+python-multipart

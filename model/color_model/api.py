@@ -1,9 +1,51 @@
 import os
 import sys
+import subprocess
+
+def ensure_dependencies():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.abspath(os.path.join(current_dir, "..", ".."))
+    frontend_dir = os.path.join(current_dir, "frontend")
+    
+    missing_deps = False
+    
+    # 1. Check Python dependencies
+    try:
+        import fastapi
+        import uvicorn
+        import torch
+    except ImportError:
+        missing_deps = True
+        print("📦 Missing Python dependencies detected. Installing from requirements.txt...")
+        req_path = os.path.join(root_dir, "requirements.txt")
+        if os.path.exists(req_path):
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", req_path])
+        else:
+            print(f"⚠️ requirements.txt not found at {req_path}! Skipping python install.")
+            
+    # 2. Check Node dependencies
+    node_modules_path = os.path.join(frontend_dir, "node_modules")
+    dist_path = os.path.join(frontend_dir, "dist")
+    if not os.path.exists(node_modules_path) or not os.path.exists(dist_path):
+        missing_deps = True
+        print("📦 Missing Node modules or frontend build. Installing and building frontend...")
+        try:
+            subprocess.check_call(["npm", "install"], cwd=frontend_dir, shell=True)
+            subprocess.check_call(["npm", "run", "build"], cwd=frontend_dir, shell=True)
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Failed to build frontend: {e}")
+            print("Please ensure NodeJS and NPM are installed on your system.")
+            sys.exit(1)
+            
+    if missing_deps:
+        print("✅ All dependencies installed successfully. Restarting API...")
+        os.execv(sys.executable, [sys.executable] + sys.argv)
+
+ensure_dependencies()
+
 import time
 import queue
 import threading
-import subprocess
 import requests
 from pathlib import Path
 from fastapi import FastAPI, Request, UploadFile, File
