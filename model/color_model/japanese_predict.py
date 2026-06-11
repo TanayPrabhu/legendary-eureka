@@ -208,9 +208,10 @@ def process_japanese_manga(input_dir, output_img_dir, output_json_dir):
         
         final_img_pil.save(os.path.join(output_img_dir, output_filename))
         
-        # Save JSON with original base name
-        with open(os.path.join(output_json_dir, base_name + ".json"), "w", encoding="utf-8") as f: 
-            json.dump(labelme_data, f, indent=4, ensure_ascii=False)
+        # Save JSON with original base name if output_json_dir is provided
+        if output_json_dir and os.path.isdir(output_json_dir):
+            with open(os.path.join(output_json_dir, base_name + ".json"), "w", encoding="utf-8") as f: 
+                json.dump(labelme_data, f, indent=4, ensure_ascii=False)
         print(f"  ✅ Saved page.")
 
     print("\n✅ Japanese Processing complete!")

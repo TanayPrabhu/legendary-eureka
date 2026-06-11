@@ -2,14 +2,46 @@ import os
 import sys
 import subprocess
 
-def ensure_dependencies():
+def is_virtualenv():
+    if hasattr(sys, 'real_prefix'):
+        return True
+    if hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix:
+        return True
+    if 'VIRTUAL_ENV' in os.environ or 'CONDA_PREFIX' in os.environ:
+        return True
+    return False
+
+def bootloader_and_dependencies():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     root_dir = os.path.abspath(os.path.join(current_dir, "..", ".."))
     frontend_dir = os.path.join(current_dir, "frontend")
+    env_dir = os.path.join(root_dir, "pytorch_env")
     
+    # 1. Environment Routing
+    if not is_virtualenv():
+        # Check if local pytorch_env exists
+        python_exe = os.path.join(env_dir, "Scripts", "python.exe") if os.name == 'nt' else os.path.join(env_dir, "bin", "python")
+        
+        if os.path.exists(python_exe):
+            print(f"🔄 Found local 'pytorch_env'. Routing execution into virtual environment...")
+            subprocess.run([python_exe] + sys.argv)
+            sys.exit(0)
+        else:
+            choice = input("\n⚠️ No active virtual environment detected.\nWould you like to create a dedicated 'pytorch_env' virtual environment in the root folder? (y/n): ").strip().lower()
+            if choice == 'y':
+                print("⏳ Creating virtual environment 'pytorch_env'...")
+                subprocess.check_call([sys.executable, "-m", "venv", env_dir])
+                print("🔄 Environment created. Routing execution into virtual environment...")
+                subprocess.run([python_exe] + sys.argv)
+                sys.exit(0)
+            else:
+                print("\n⚠️ WARNING: Using a custom environment is more safe as using global env may try to conflict with the dependency synchonization for this and user's own project.\nProceeding with global environment...\n")
+    else:
+        print("✅ Active virtual environment detected.")
+
     missing_deps = False
     
-    # 1. Check Python dependencies
+    # 2. Check Python dependencies
     try:
         import fastapi
         import uvicorn
@@ -23,7 +55,7 @@ def ensure_dependencies():
         else:
             print(f"⚠️ requirements.txt not found at {req_path}! Skipping python install.")
             
-    # 2. Check Node dependencies
+    # 3. Check Node dependencies
     node_modules_path = os.path.join(frontend_dir, "node_modules")
     dist_path = os.path.join(frontend_dir, "dist")
     if not os.path.exists(node_modules_path) or not os.path.exists(dist_path):
@@ -39,9 +71,10 @@ def ensure_dependencies():
             
     if missing_deps:
         print("✅ All dependencies installed successfully. Restarting API...")
-        os.execv(sys.executable, [sys.executable] + sys.argv)
+        subprocess.run([sys.executable] + sys.argv)
+        sys.exit(0)
 
-ensure_dependencies()
+bootloader_and_dependencies()
 
 import time
 import queue
@@ -235,6 +268,20 @@ def install_pipeline_deps(pipeline: str):
         except subprocess.CalledProcessError as e:
             return JSONResponse(status_code=500, content={"error": f"Failed to install {pip_target}"})
             
+    # Shared Dependencies Logic (Ollama)
+    if pipeline in ["chinese", "korean"]:
+        print("📥 Downloading Ollama AI model (qwen2.5:3b)... This may take a while depending on your internet connection.")
+        try:
+            # We don't use check_call because we want it to stream output and not crash if ollama is not installed
+            subprocess.run(["ollama", "pull", "qwen2.5:3b"], stdout=sys.stdout, stderr=subprocess.STDOUT)
+            print("✅ Ollama model installed successfully!")
+        except FileNotFoundError:
+            print("❌ Ollama is not installed on your system! Please install it from https://ollama.com/")
+            return JSONResponse(status_code=500, content={"error": "Ollama is not installed. Please install Ollama first."})
+        except Exception as e:
+            print(f"❌ Failed to download Ollama model: {e}")
+            return JSONResponse(status_code=500, content={"error": "Failed to download Ollama model."})
+
     return {"success": True}
 
 @app.post("/api/deps/{pipeline}/uninstall")
@@ -266,7 +313,7 @@ def uninstall_pipeline_deps(pipeline: str):
 class TranslationRequest(BaseModel):
     input_dir: str
     output_img_dir: str
-    output_json_dir: str
+    output_json_dir: str = None
     model_path: str
     wipe_memory: bool = False
 
@@ -337,7 +384,6 @@ def run_translation_pipeline(req: TranslationRequest):
         print(f"\n❌ Pipeline Error: {e}")
     finally:
         app_state.is_translating = False
-        app_state.current_job = None
         print("\n🏁 Translation Job Finished.")
 
 @app.post("/api/translate/start")

@@ -3,10 +3,11 @@ import { HardDrive, Play, Loader2, FolderOpen, UploadCloud, RefreshCcw, Layers, 
 import FolderBrowserModal from '../components/FolderBrowserModal';
 
 export default function Translate({ onStart }) {
-  // Try to load state from localStorage
-  const savedConfig = JSON.parse(localStorage.getItem('mangalens_config')) || {};
-  const savedMode = localStorage.getItem('mangalens_inputMode');
-  const savedUpload = JSON.parse(localStorage.getItem('mangalens_uploadData'));
+  // Try to load state from sessionStorage
+  const savedConfig = JSON.parse(sessionStorage.getItem('mangalens_config')) || {};
+  const savedMode = sessionStorage.getItem('mangalens_inputMode');
+  const savedUpload = JSON.parse(sessionStorage.getItem('mangalens_uploadData'));
+  const savedDevToggle = JSON.parse(sessionStorage.getItem('mangalens_devToggle')) || false;
 
   const [config, setConfig] = useState({
     inputDir: savedConfig.inputDir || '',
@@ -21,22 +22,24 @@ export default function Translate({ onStart }) {
   
   // UI Modes
   const [inputMode, setInputMode] = useState(savedMode || 'folder'); // 'folder' | 'dragdrop'
+  const [devToggle, setDevToggle] = useState(savedDevToggle);
   
   // Drag and drop state
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadData, setUploadData] = useState(savedUpload || null); // { count: number, thumbnail: string }
   
-  // Save to localStorage on change
+  // Save to sessionStorage on change
   useEffect(() => {
-    localStorage.setItem('mangalens_config', JSON.stringify(config));
-    localStorage.setItem('mangalens_inputMode', inputMode);
+    sessionStorage.setItem('mangalens_config', JSON.stringify(config));
+    sessionStorage.setItem('mangalens_inputMode', inputMode);
+    sessionStorage.setItem('mangalens_devToggle', JSON.stringify(devToggle));
     if (uploadData) {
-      localStorage.setItem('mangalens_uploadData', JSON.stringify(uploadData));
+      sessionStorage.setItem('mangalens_uploadData', JSON.stringify(uploadData));
     } else {
-      localStorage.removeItem('mangalens_uploadData');
+      sessionStorage.removeItem('mangalens_uploadData');
     }
-  }, [config, inputMode, uploadData]);
+  }, [config, inputMode, uploadData, devToggle]);
   
   // Progress & Logs
   const [progress, setProgress] = useState(0);
@@ -67,8 +70,8 @@ export default function Translate({ onStart }) {
       alert("Please drag and drop images first.");
       return;
     }
-    if (!config.outputImgDir || !config.outputJsonDir) {
-      alert("Please specify the Output Image and JSON folders.");
+    if (!config.outputImgDir || (devToggle && !config.outputJsonDir)) {
+      alert("Please specify the required Output folders.");
       return;
     }
     
@@ -79,7 +82,7 @@ export default function Translate({ onStart }) {
         body: JSON.stringify({
           input_dir: config.inputDir,
           output_img_dir: config.outputImgDir,
-          output_json_dir: config.outputJsonDir,
+          output_json_dir: devToggle ? config.outputJsonDir : "",
           model_path: config.modelPath,
           wipe_memory: config.wipeMemory
         })
@@ -230,29 +233,61 @@ export default function Translate({ onStart }) {
             )}
 
             {/* Output Folders (Always show) */}
-            {[
-              { id: 'outputImgDir', label: 'Output Folder (Translated Images)' },
-              { id: 'outputJsonDir', label: 'Output Folder (LabelMe JSONs)' }
-            ].map(field => (
-              <div key={field.id}>
-                <label className="block text-sm font-medium text-gray-400 mb-1">{field.label}</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Output Folder (Translated Images)</label>
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  value={config.outputImgDir}
+                  onChange={e => setConfig({...config, outputImgDir: e.target.value})}
+                  className="input-field flex-1 text-sm font-mono" 
+                  placeholder="Enter or paste folder path..." 
+                />
+                <button 
+                  onClick={() => setBrowserTarget('outputImgDir')}
+                  className="btn-secondary flex items-center gap-2 px-3"
+                >
+                  <FolderOpen size={16} /> Browse
+                </button>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-gray-200">Help the Developer for improvement of the app</div>
+                <div className="text-xs text-gray-400">Save JSON bounding box data to help train better AI models.</div>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={devToggle} 
+                  onChange={e => setDevToggle(e.target.checked)}
+                  className="sr-only peer" 
+                />
+                <div className="w-11 h-6 bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-primary"></div>
+              </label>
+            </div>
+
+            {devToggle && (
+              <div className="animate-fade-in pl-4 border-l-2 border-accent-primary/50">
+                <label className="block text-sm font-medium text-gray-400 mb-1">Developer Data Folder (JSONs)</label>
                 <div className="flex gap-2">
                   <input 
                     type="text" 
-                    value={config[field.id]}
-                    onChange={e => setConfig({...config, [field.id]: e.target.value})}
+                    value={config.outputJsonDir}
+                    onChange={e => setConfig({...config, outputJsonDir: e.target.value})}
                     className="input-field flex-1 text-sm font-mono" 
-                    placeholder="Enter or paste folder path..." 
+                    placeholder="Where should we save the JSON data?" 
                   />
                   <button 
-                    onClick={() => setBrowserTarget(field.id)}
+                    onClick={() => setBrowserTarget('outputJsonDir')}
                     className="btn-secondary flex items-center gap-2 px-3"
                   >
                     <FolderOpen size={16} /> Browse
                   </button>
                 </div>
               </div>
-            ))}
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">YOLO Detection Model</label>

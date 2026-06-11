@@ -6,6 +6,7 @@ export default function Execution({ onComplete }) {
   const [logs, setLogs] = useState([]);
   const [currentImage, setCurrentImage] = useState(null);
   const [translatedKey, setTranslatedKey] = useState(Date.now());
+  const [isComplete, setIsComplete] = useState(false);
 
   // SSE Stream
   useEffect(() => {
@@ -31,10 +32,7 @@ export default function Execution({ onComplete }) {
 
         // Parse completion
         if (data.includes("Translation Job Finished") || data.includes("Pipeline Error")) {
-          // Add a short delay before returning so user sees 100%
-          setTimeout(() => {
-            if (onComplete) onComplete();
-          }, 3000);
+          setIsComplete(true);
         }
         
         setLogs(prev => {
@@ -75,10 +73,10 @@ export default function Execution({ onComplete }) {
       <div className="flex items-center justify-between mb-6 flex-shrink-0">
         <div>
           <h2 className="text-3xl font-bold text-white tracking-tight">
-            {isDetecting ? "Language Detection" : "Live Translation"}
+            {isDetecting ? "Language Detection" : (isComplete ? "Translation Complete!" : "Live Translation")}
           </h2>
           <p className="text-gray-400 mt-1">
-            {isDetecting ? "Analyzing first 5 images for language shootout..." : `Processing: ${currentImage || '...'}`}
+            {isDetecting ? "Analyzing first 5 images for language shootout..." : (isComplete ? "All requested images have been processed." : `Processing: ${currentImage || '...'}`)}
           </p>
         </div>
         <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-xl border border-white/5">
@@ -189,14 +187,23 @@ export default function Execution({ onComplete }) {
               <div className="text-gray-500 italic mt-auto">Waiting for AI engine...</div>
             )}
           </div>
-          
-          <button 
-            onClick={handleStop}
-            className="px-8 flex flex-col items-center justify-center gap-1 bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 rounded-xl transition-all font-medium"
-          >
-            <Loader2 size={20} className="animate-spin" />
-            <span className="text-sm">Stop</span>
-          </button>
+          {isComplete ? (
+            <button 
+              onClick={() => { if (onComplete) onComplete(); }}
+              className="px-8 flex flex-col items-center justify-center gap-1 bg-accent-primary/20 text-accent-primary hover:bg-accent-primary/30 border border-accent-primary/50 rounded-xl transition-all font-medium"
+            >
+              <CheckCircle size={20} />
+              <span className="text-sm font-bold">Go Back</span>
+            </button>
+          ) : (
+            <button 
+              onClick={handleStop}
+              className="px-8 flex flex-col items-center justify-center gap-1 bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 rounded-xl transition-all font-medium"
+            >
+              <Loader2 size={20} className="animate-spin" />
+              <span className="text-sm">Stop</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -205,8 +205,9 @@ def process_korean_manhwa(input_dir, output_img_dir, output_json_dir):
         
         final_img_pil.save(os.path.join(output_img_dir, output_filename))
         
-        with open(os.path.join(output_json_dir, base_name + ".json"), "w", encoding="utf-8") as f: 
-            json.dump(labelme_data, f, indent=4, ensure_ascii=False)
+        if output_json_dir and os.path.isdir(output_json_dir):
+            with open(os.path.join(output_json_dir, base_name + ".json"), "w", encoding="utf-8") as f: 
+                json.dump(labelme_data, f, indent=4, ensure_ascii=False)
         print(f"  ✅ Saved page.")
 
     print("\n✅ Webtoon Processing complete!")
