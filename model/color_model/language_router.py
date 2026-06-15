@@ -22,8 +22,12 @@ _ocr_models = {}
 def get_ocr_model(lang_code):
     if lang_code not in _ocr_models:
         print(f"🔍 Loading {lang_code.upper()} Scanner (CPU Mode)...")
-        from paddleocr import PaddleOCR
-        _ocr_models[lang_code] = PaddleOCR(use_angle_cls=False, lang=lang_code, show_log=False, use_gpu=False)
+        try:
+            from paddleocr import PaddleOCR
+            _ocr_models[lang_code] = PaddleOCR(use_angle_cls=False, lang=lang_code, show_log=False, use_gpu=False)
+        except Exception as e:
+            print(f"⚠️ Skipping {lang_code.upper()} scanner (dependencies not installed or module missing: {e})")
+            _ocr_models[lang_code] = None
     return _ocr_models[lang_code]
 
 # ==========================================
@@ -113,6 +117,9 @@ def identify_manga_language(input_dir):
         
         for lang_code, lang_name in languages.items():
             ocr = get_ocr_model(lang_code)
+            if ocr is None:
+                continue
+                
             result = ocr.ocr(img_array, cls=False)
             
             if result and result[0]:

@@ -105,8 +105,10 @@ def process_chinese_manga(input_dir, output_img_dir, output_json_dir):
         print(f"❌ Failed to load models: {e}")
         return
 
-    os.makedirs(output_img_dir, exist_ok=True)
-    os.makedirs(output_json_dir, exist_ok=True)
+    if output_img_dir:
+        os.makedirs(output_img_dir, exist_ok=True)
+    if output_json_dir:
+        os.makedirs(output_json_dir, exist_ok=True)
     class_names, font_path = trained_model.names, get_base_font_path()
     conf_threshold = 0.25
 

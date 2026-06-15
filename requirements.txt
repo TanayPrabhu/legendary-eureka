@@ -28,7 +28,7 @@ Pillow
 numpy
 
 # PyTorch (GPU inference for YOLO, MangaOCR, LaMa)
---extra-index-url https://download.pytorch.org/whl/cu13
+--extra-index-url https://download.pytorch.org/whl/cu130
 torch
 torchvision
 

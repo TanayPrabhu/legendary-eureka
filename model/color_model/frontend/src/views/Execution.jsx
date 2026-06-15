@@ -35,6 +35,11 @@ export default function Execution({ onComplete }) {
           setIsComplete(true);
         }
         
+        // Trigger image refresh when backend saves the page
+        if (data.includes("Saved page.")) {
+          setTranslatedKey(Date.now());
+        }
+        
         setLogs(prev => {
           const newLogs = [...prev, data];
           if (newLogs.length > 50) return newLogs.slice(newLogs.length - 50);
@@ -46,15 +51,8 @@ export default function Execution({ onComplete }) {
     return () => eventSource.close();
   }, [onComplete]);
 
-  // Polling for translated image refresh
-  useEffect(() => {
-    if (progress > 0 && currentImage) {
-      const interval = setInterval(() => {
-        setTranslatedKey(Date.now());
-      }, 1500);
-      return () => clearInterval(interval);
-    }
-  }, [progress, currentImage]);
+  // Stop polling manually, rely on SSE events instead.
+  // (We removed the setInterval here)
 
   const handleStop = async () => {
     try {
@@ -144,7 +142,7 @@ export default function Execution({ onComplete }) {
                     </div>
                     {/* Actual Image (hidden on error/404) */}
                     <img 
-                      key={`${currentImage}-${translatedKey}`}
+                      key={currentImage}
                       src={`http://localhost:8000/api/images/translated?filename=${encodeURIComponent(currentImage)}&t=${translatedKey}`}
                       alt="Translated"
                       className="max-w-full max-h-full object-contain drop-shadow-2xl rounded relative z-10"
